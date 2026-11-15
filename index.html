@@ -1,0 +1,1174 @@
+<title>MerluHealth</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: cabina de un solo flujo. Una columna de 620 px, cabecera fija, navegación inferior.
+   La palabra de la decisión (Barlow Condensed, enorme) es lo único que grita; el resto es sereno. */
+:root{
+  --bg:#0B1620; --bg2:#101F2B; --bg3:#172B3A; --line:#27424F;
+  --fg:#E9F0F4; --fg2:#A9BCC7; --accent:#6CC6E8; --accent-ink:#06222E;
+  --go:#5BD08E; --go-bg:#0F3326; --wait:#F4B73F; --wait-bg:#3A2C0C;
+  --nogo:#FF7B6E; --nogo-bg:#431915; --unk:#B3BAE6; --unk-bg:#242A4A;
+  --f-display:'Barlow Condensed','Arial Narrow',Arial,sans-serif;
+  --f-body:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --f-mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg:#EDF2F5; --bg2:#FFFFFF; --bg3:#E1EAF0; --line:#BFD0DA;
+    --fg:#0F2230; --fg2:#41596A; --accent:#0B6E94; --accent-ink:#FFFFFF;
+    --go:#116A45; --go-bg:#DCF4E7; --wait:#7D5200; --wait-bg:#FFEFC9;
+    --nogo:#B3261E; --nogo-bg:#FDE2DF; --unk:#413E99; --unk-bg:#E6E8F8; color-scheme:light;
+  }
+}
+:root[data-theme="light"]{
+  --bg:#EDF2F5; --bg2:#FFFFFF; --bg3:#E1EAF0; --line:#BFD0DA;
+  --fg:#0F2230; --fg2:#41596A; --accent:#0B6E94; --accent-ink:#FFFFFF;
+  --go:#116A45; --go-bg:#DCF4E7; --wait:#7D5200; --wait-bg:#FFEFC9;
+  --nogo:#B3261E; --nogo-bg:#FDE2DF; --unk:#413E99; --unk-bg:#E6E8F8; color-scheme:light;
+}
+[data-lv="go"]{--lv:var(--go);--lv-bg:var(--go-bg)}
+[data-lv="wait"]{--lv:var(--wait);--lv-bg:var(--wait-bg)}
+[data-lv="nogo"]{--lv:var(--nogo);--lv-bg:var(--nogo-bg)}
+[data-lv="unk"]{--lv:var(--unk);--lv-bg:var(--unk-bg)}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 var(--f-body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-top:0;padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
+html.big body{font-size:19px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:30}
+.wrap{max-width:620px;margin:0 auto}
+button,input,select{font:inherit;color:inherit}
+h1,h2,h3,p{margin:0}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+/* Cabecera */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);padding:12px 0 10px;border-bottom:1px solid var(--line)}
+.top-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.brand{display:flex;align-items:center;gap:9px;min-width:0}
+.brand svg{flex:none;color:var(--accent)}
+.brand b{font:700 26px/1 var(--f-display);letter-spacing:.02em}
+.brand span{font-size:12.5px;color:var(--fg2);line-height:1.25}
+.tools{display:flex;gap:6px;flex:none}
+.ibtn{min-width:44px;min-height:44px;border-radius:10px;border:1px solid var(--line);background:var(--bg2);cursor:pointer;display:grid;place-items:center;font:600 13px var(--f-body)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:26px;padding:0 10px;border-radius:99px;border:1px solid var(--line);background:var(--bg2);font-size:12.5px;font-weight:500;color:var(--fg2)}
+.chip.sim{border-color:var(--wait);color:var(--wait)}
+.chip.lv{border-color:var(--lv);color:var(--lv);background:var(--lv-bg)}
+
+/* Vistas */
+main{padding-top:16px;display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
+main>*{min-width:0}
+.card{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.card h2{font:700 24px/1.1 var(--f-display);letter-spacing:.02em;margin-bottom:6px}
+.card h3{font:600 15px/1.3 var(--f-body);margin-bottom:6px}
+.muted{color:var(--fg2)} .small{font-size:13.5px}
+.stack{display:grid;gap:10px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.split{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+@media (max-width:440px){.grid2{grid-template-columns:1fr}.grid3{grid-template-columns:1fr 1fr 1fr}}
+
+.btn{min-height:48px;padding:0 18px;border-radius:10px;border:1px solid var(--line);background:var(--bg3);cursor:pointer;font-weight:600;display:inline-flex;align-items:center;justify-content:center;text-align:center;gap:8px}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.btn.danger{border-color:var(--nogo);color:var(--nogo);background:transparent}
+.btn.block{width:100%}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:4px}
+.seg button{min-height:44px;border:0;border-radius:9px;background:transparent;cursor:pointer;font-weight:600;color:var(--fg2)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+
+/* Fases */
+.phases{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;list-style:none;margin:0;padding:0}
+.phases li{font-size:12px;line-height:1.2;text-align:center;color:var(--fg2);padding-top:10px;border-top:4px solid var(--line)}
+.phases li[aria-current="step"]{color:var(--fg);font-weight:600;border-top-color:var(--accent)}
+.phases li.done{border-top-color:var(--go)}
+
+/* Nivel de estimación */
+.level{border:1px solid var(--lv);background:var(--lv-bg);border-radius:14px;padding:16px;display:grid;gap:8px}
+.level .word{font:700 52px/1 var(--f-display);color:var(--lv);text-transform:uppercase;letter-spacing:.02em}
+.flist{list-style:none;margin:0;padding:0;display:grid;gap:0}
+.flist li{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:10px 0;border-top:1px solid var(--line)}
+.flist li:first-child{border-top:0}
+.flist .fl{font-weight:600}
+.flist .fd{grid-column:1;color:var(--fg2);font-size:14px}
+.tag{align-self:start;font-size:12px;font-weight:600;padding:2px 9px;border-radius:99px;border:1px solid currentColor;white-space:nowrap}
+.tag.up{color:var(--wait)} .tag.ok{color:var(--go)} .tag.ctx{color:var(--accent)} .tag.missing,.tag.stale,.tag.invalid{color:var(--unk)}
+
+/* Lista de preparación */
+.check{display:grid;grid-template-columns:36px 1fr;gap:12px;width:100%;text-align:left;border:1px solid var(--line);background:var(--bg2);border-radius:12px;padding:12px;cursor:pointer;min-height:64px}
+.check .box{width:30px;height:30px;border-radius:8px;border:2px solid var(--fg2);display:grid;place-items:center}
+.check[aria-checked="true"]{border-color:var(--go)}
+.check[aria-checked="true"] .box{background:var(--go);border-color:var(--go);color:var(--bg)}
+.check b{display:block}
+.bar{height:8px;background:var(--bg3);border-radius:99px;overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--accent);width:0}
+.bar.go>i{background:var(--go)}
+
+/* Evaluación */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;list-style:none;margin:0;padding:0}
+.steps li{font-size:13px;text-align:center;padding:6px 2px;border-radius:8px;background:var(--bg3);color:var(--fg2)}
+.steps li[aria-current="step"]{background:var(--accent);color:var(--accent-ink);font-weight:600}
+.steps li.done{color:var(--go)}
+.timer{font:700 clamp(72px,24vw,112px)/1 var(--f-display);font-variant-numeric:tabular-nums;letter-spacing:.01em}
+.instr{font:600 24px/1.25 var(--f-body);text-wrap:balance}
+.hrnow{font:600 40px/1 var(--f-mono);font-variant-numeric:tabular-nums}
+.spark{width:100%;height:64px;display:block}
+.spark polyline{fill:none;stroke:var(--accent);stroke-width:2;vector-effect:non-scaling-stroke}
+.spark line{stroke:var(--line);stroke-width:1;vector-effect:non-scaling-stroke}
+.field{display:grid;gap:4px}
+.field label{font-size:13px;color:var(--fg2)}
+.in{width:100%;min-height:48px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:0 10px;font:500 18px var(--f-mono)}
+.in:disabled{opacity:.45}
+select.in{font-family:var(--f-body);font-size:16px}
+.sym-btn{min-height:56px;font-size:17px}
+.warn{border:1px solid var(--wait);background:var(--wait-bg);color:var(--fg);border-radius:12px;padding:12px;font-size:15px}
+.note{border:1px dashed var(--line);border-radius:12px;padding:10px 12px;font-size:14px;color:var(--fg2)}
+
+/* Tarjeta de decisión */
+.dcard{border:2px solid var(--lv);background:var(--lv-bg);border-radius:18px;padding:18px;display:grid;gap:14px}
+.dcard .word{font:700 clamp(44px,13vw,88px)/.95 var(--f-display);color:var(--lv);text-transform:uppercase;text-wrap:balance;letter-spacing:.01em;overflow-wrap:anywhere}
+.split{flex-wrap:wrap}
+.dcard.expired{opacity:.55}
+.next{background:var(--bg);border-radius:12px;padding:14px;font:600 19px/1.35 var(--f-body)}
+.reasons{margin:0;padding-left:20px;display:grid;gap:4px}
+.mt{background:var(--bg);border-radius:12px;padding:10px;text-align:center}
+.mt b{display:block;font:600 24px var(--f-mono);font-variant-numeric:tabular-nums}
+.mt span{font-size:12.5px;color:var(--fg2)}
+.cd{font:600 28px var(--f-mono);font-variant-numeric:tabular-nums}
+
+/* Registro */
+.log{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.log li{border:1px solid var(--line);border-radius:12px;background:var(--bg2);padding:12px;display:grid;gap:6px;border-left:6px solid var(--lv,var(--line))}
+.log pre,.jsonout{margin:0;max-height:260px;overflow:auto;background:var(--bg);border-radius:8px;padding:10px;font:12px/1.4 var(--f-mono);white-space:pre-wrap;word-break:break-word;width:100%}
+details summary{cursor:pointer;font-weight:600;min-height:36px;display:flex;align-items:center}
+.rules{display:grid;gap:10px}
+.rule{display:grid;grid-template-columns:1fr 96px;gap:4px 10px;align-items:center}
+.rule .og{grid-column:1/-1;margin-top:-4px}
+.refs{margin:0;padding-left:18px;display:grid;gap:8px;font-size:14px;color:var(--fg2)}
+
+/* Navegación inferior */
+nav.bottom{position:fixed;left:0;right:0;bottom:0;z-index:25;background:var(--bg2);border-top:1px solid var(--line);
+  padding:6px max(8px,env(safe-area-inset-left,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-right,0px))}
+nav.bottom .in-nav{max-width:620px;margin:0 auto;display:grid;grid-template-columns:repeat(6,1fr);gap:2px}
+nav.bottom button{min-height:56px;border:0;background:transparent;border-radius:10px;cursor:pointer;color:var(--fg2);display:grid;place-items:center;gap:2px;font-size:11.5px;font-weight:600;padding:4px 0}
+nav.bottom button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+nav.bottom button[aria-current="page"]{color:var(--accent);background:var(--bg3)}
+
+/* Hoja de síntomas */
+#sheet{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.6);display:grid;align-items:end;justify-items:center}
+#sheet .panel{width:100%;max-width:620px;background:var(--bg2);border:1px solid var(--line);border-radius:18px 18px 0 0;padding:18px max(16px,env(safe-area-inset-left,0px)) calc(18px + env(safe-area-inset-bottom,0px));display:grid;gap:10px;max-height:92%;overflow:auto}
+#sheet label.opt{display:flex;gap:12px;align-items:center;min-height:52px;border:1px solid var(--line);border-radius:10px;padding:0 12px;cursor:pointer}
+#sheet label.opt input{width:22px;height:22px;accent-color:var(--accent)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(92px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:99px;font-weight:600;z-index:50}
+@media (prefers-reduced-motion: no-preference){ .bar>i{transition:width .25s linear} .btn{transition:border-color .15s} }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="top-row">
+      <div class="brand">
+        <svg width="30" height="30" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="16" cy="16" r="13"/><path d="M5 20h5l3-9 4 14 3-8 2 3h5"/></svg>
+        <div><b>MerluHealth</b><br><span id="tag"></span></div>
+      </div>
+      <div class="tools">
+        <button class="ibtn" id="btn-lang" data-act="lang" aria-label="Language">ES</button>
+        <button class="ibtn" id="btn-theme" data-act="theme" aria-label="Theme"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/></svg></button>
+      </div>
+    </div>
+    <div class="chips" id="chips"></div>
+  </header>
+  <main id="view"></main>
+</div>
+<nav class="bottom" aria-label="Main"><div class="in-nav" id="nav"></div></nav>
+<div id="sheet" role="dialog" aria-modal="true" hidden></div>
+<div id="toast" class="toast" role="status" hidden></div>
+<script>
+/* ============================================================
+   MERLUHEALTH · MOTOR DE REGLAS (puro, sin DOM)
+   Todo umbral vive en DEFAULT_RULES y es editable desde la app.
+   Origen de cada valor: 'clinical' (criterio clínico publicado),
+   'ref' (valor de referencia de la literatura), 'protocol'
+   (protocolo publicado) o 'prov' (provisional, sin validar).
+   No es un dispositivo médico. No calcula probabilidades.
+   ============================================================ */
+const SEVERE = ['presync', 'faint'];
+const SYMS = ['dizzy', 'vision', 'nausea', 'weak', 'palp', 'presync', 'faint'];
+
+const DEFAULT_RULES = {
+  version: '0.1-provisional',
+  durations: { rest: 900, lying: 300, sit: 30, stand: 180 }, // s
+  th: {
+    sbp_drop_ho: 20, dbp_drop_ho: 10,      // criterio clínico de hipotensión ortostática
+    sbp_drop_marg: 15, dbp_drop_marg: 8,   // zona límite (provisional)
+    hr_rise_marg: 30,                      // referencia: ≥30 lpm en adultos
+    hr_dev_base: 15, sbp_low: 95,
+    fluid_target_ml: 1000,
+    comp_low: 50, comp_ok: 80,
+    long_days: 90,
+    age_hr: 60, age_bp: 60, age_fluid: 720, // min
+    valid_go: 30, repeat_wait: 20, repeat_nogo: 45, // min
+    pts_mod: 2, pts_high: 5                 // interno: puntos -> nivel. Nunca se muestran.
+  },
+  ranges: { hr: [30, 220], sbp: [50, 260], dbp: [30, 150], fluid: [0, 5000], pct: [0, 100] },
+  origin: {
+    sbp_drop_ho: 'clinical', dbp_drop_ho: 'clinical', hr_rise_marg: 'ref',
+    du_lying: 'protocol', du_sit: 'protocol', du_stand: 'protocol'
+  }
+};
+
+const rangeOk = (v, r) => typeof v === 'number' && isFinite(v) && v >= r[0] && v <= r[1];
+
+/* ---------- 1. Estimación previa (bajo / moderado / alto / indeterminado) ---------- */
+function estimateRisk(inp, R) {
+  const th = R.th, rg = R.ranges, F = [], crit = [];
+  let pts = 0, severe = false;
+  const add = (id, st, p, w) => { F.push({ id, st, p: p || {} }); pts += (w || 0); };
+  const state = (val, range, age, maxAge) =>
+    val == null ? 'missing' : !rangeOk(val, range) ? 'invalid' : (age != null && age > maxAge) ? 'stale' : 'ok';
+
+  // FC en reposo vs. línea base personal (contexto de peso bajo)
+  const hr = inp.hr || {};
+  const hs = state(hr.value, rg.hr, hr.ageMin, th.age_hr);
+  if (hs !== 'ok') { add('hr', hs, { age: hr.ageMin }); crit.push('hr'); }
+  else {
+    const d = hr.value - inp.baseHr;
+    if (rangeOk(inp.baseHr, rg.hr) && d >= th.hr_dev_base) add('hr', 'up', { v: hr.value, b: inp.baseHr, d }, 1);
+    else add('hr', 'ok', { v: hr.value, b: inp.baseHr });
+  }
+  // Presión en reposo (no es dato crítico; sin ella la prueba la pedirá)
+  const bp = inp.bp || {};
+  const bs = state(bp.sbp, rg.sbp, bp.ageMin, th.age_bp);
+  const bsd = bs === 'ok' && !rangeOk(bp.dbp, rg.dbp) ? 'invalid' : bs;
+  if (bsd !== 'ok') add('bp', bsd, { age: bp.ageMin });
+  else if (bp.sbp < th.sbp_low) add('bp', 'up', { s: bp.sbp, d: bp.dbp }, 1);
+  else add('bp', 'ok', { s: bp.sbp, d: bp.dbp });
+  // Líquidos (registro; la hidratación no se mide con un reloj)
+  const fl = inp.fluid || {};
+  const fs = state(fl.ml, rg.fluid, fl.ageMin, th.age_fluid);
+  if (fs !== 'ok') { add('fluid', fs, { age: fl.ageMin }); crit.push('fluid'); }
+  else {
+    const pct = Math.round(fl.ml / th.fluid_target_ml * 100);
+    add('fluid', pct < 70 ? 'up' : pct < 90 ? 'up' : 'ok', { ml: fl.ml, pct }, pct < 70 ? 2 : pct < 90 ? 1 : 0);
+  }
+  // Prenda de compresión
+  if (inp.compression === false) add('compression', 'up', {}, 1); else add('compression', 'ok', {});
+  // Cumplimiento de contramedidas durante la misión
+  const cs = state(inp.compliance, rg.pct);
+  if (cs !== 'ok') { add('compliance', cs, {}); crit.push('compliance'); }
+  else add('compliance', inp.compliance < th.comp_ok ? 'up' : 'ok', { v: inp.compliance },
+    inp.compliance < th.comp_low ? 2 : inp.compliance < th.comp_ok ? 1 : 0);
+  // Duración
+  add('duration', inp.days >= th.long_days ? 'up' : 'ok', { d: inp.days }, inp.days >= th.long_days ? 1 : 0);
+  // Contexto sin peso
+  add('gravity', 'ctx', { g: inp.dest === 'moon' ? '0,16' : '0,38' });
+  add('sex', 'ctx', { sfx: inp.sex === 'F' ? 'F' : 'M' });
+  // Síntomas actuales
+  const sy = inp.symptoms || [];
+  if (sy.length) {
+    if (sy.some(s => SEVERE.includes(s))) severe = true;
+    add('symptoms', 'up', { n: sy.length }, 2);
+  } else add('symptoms', 'ok', {});
+
+  let level = severe ? 'high' : pts >= th.pts_high ? 'high' : pts >= th.pts_mod ? 'mod' : 'low';
+  if (!severe) {
+    if (crit.length >= 2) level = 'unk';
+    else if (crit.length === 1 && level === 'low') level = 'unk'; // "bajo" con datos faltantes no existe
+  }
+  const bpOk = F.find(f => f.id === 'bp').st === 'ok' || F.find(f => f.id === 'bp').st === 'up';
+  const conf = crit.length === 0 ? (bpOk ? 'high' : 'mid') : 'low';
+  return { level, conf, factors: F, missing: crit, pts };
+}
+
+/* ---------- 2. Métricas de la prueba de pie ---------- */
+function metrics(rd, R) {
+  const rg = R.ranges, L = rd.lying || {};
+  const st = [rd.stand1, rd.stand3].filter(Boolean);
+  const lyBp = rangeOk(L.sbp, rg.sbp) && rangeOk(L.dbp, rg.dbp);
+  const stBp = st.filter(s => rangeOk(s.sbp, rg.sbp) && rangeOk(s.dbp, rg.dbp));
+  const bpOk = lyBp && stBp.length > 0;
+  const stHr = st.filter(s => rangeOk(s.hr, rg.hr));
+  const hrOk = rangeOk(L.hr, rg.hr) && stHr.length > 0;
+  return {
+    bpOk, hrOk,
+    dSbp: bpOk ? Math.max(0, L.sbp - Math.min(...stBp.map(s => s.sbp))) : null,
+    dDbp: bpOk ? Math.max(0, L.dbp - Math.min(...stBp.map(s => s.dbp))) : null,
+    dHr: hrOk ? Math.max(...stHr.map(s => s.hr)) - L.hr : null,
+    sitRise: rd.sit && rangeOk(rd.sit.hr, rg.hr) && rangeOk(L.hr, rg.hr) ? rd.sit.hr - L.hr : null
+  };
+}
+
+/* ---------- 3. Decisión (puede caminar / espera / no salgas / datos insuficientes) ---------- */
+function decide(rd, sym, stopped, pre, R) {
+  const th = R.th, m = metrics(rd || {}, R), reasons = [];
+  sym = sym || [];
+  const out = (level, next, repeat, valid) =>
+    ({ level, next, reasons, repeatMin: repeat || null, validMin: valid || null, metrics: m, symptoms: sym });
+  if (sym.some(s => SEVERE.includes(s))) { reasons.push({ c: 'sym_severe' }); return out('nogo', 'lie_down', th.repeat_nogo); }
+  if (stopped) {
+    reasons.push({ c: 'stopped', p: { n: sym.length } });
+    return sym.length >= 2 ? out('nogo', 'lie_down', th.repeat_nogo) : out('wait', 'lie_down', th.repeat_wait);
+  }
+  if (!m.bpOk) { reasons.push({ c: 'no_bp' }); return out('unk', 'no_bp'); }
+  const ho = m.dSbp >= th.sbp_drop_ho || m.dDbp >= th.dbp_drop_ho;
+  if (ho) {
+    reasons.push({ c: 'ho', p: { s: m.dSbp, d: m.dDbp } });
+    if (sym.length) { reasons.push({ c: 'ho_sym' }); return out('nogo', 'lie_down', th.repeat_nogo); }
+    return out('wait', 'rest_repeat', th.repeat_wait);
+  }
+  if (sym.length) { reasons.push({ c: 'sym_mild' }); return out('wait', 'rest_repeat', th.repeat_wait); }
+  const marg = m.dSbp >= th.sbp_drop_marg || m.dDbp >= th.dbp_drop_marg || (m.dHr != null && m.dHr >= th.hr_rise_marg);
+  if (marg) { reasons.push({ c: 'marg', p: { s: m.dSbp, d: m.dDbp, h: m.dHr == null ? '?' : m.dHr } }); return out('wait', 'rest_repeat', th.repeat_wait); }
+  if (pre && pre.level === 'high') { reasons.push({ c: 'pre_high' }); return out('wait', 'rest_repeat', th.repeat_wait); }
+  reasons.push({ c: 'pass', p: { s: m.dSbp, d: m.dDbp, h: m.dHr == null ? '?' : m.dHr } });
+  if (pre && pre.level === 'mod') reasons.push({ c: 'pre_mod' });
+  if (pre && pre.level === 'unk') reasons.push({ c: 'pre_unk' });
+  return out('go', 'walk', null, th.valid_go);
+}
+
+if (typeof module !== 'undefined') module.exports = { DEFAULT_RULES, estimateRisk, decide, metrics, SEVERE, SYMS, rangeOk };
+/* ============================================================
+   PERFILES SIMULADOS (ficticios, datos sintéticos)
+   resp = cómo responde el cuerpo simulado a la prueba de pie.
+   Las caídas (s, d) son positivas = cuánto baja la presión.
+   ============================================================ */
+const PROF = {
+  A: {
+    inp: { sex: 'M', dest: 'mars', days: 180, baseHr: 56, hr: { value: 58, ageMin: 4 }, bp: { sbp: 112, dbp: 70, ageMin: 4 },
+           fluid: { ml: 1000, ageMin: 20 }, compliance: 92, compression: true, symptoms: [] },
+    prep: { fluid: true, compression: true, cooling: true, symnote: true, area: true },
+    resp: { lying: { hr: 57, sbp: 112, dbp: 70 }, sit: 14,
+            s1: { hr: 18, s: 7, d: 3 }, s3: { hr: 20, s: 9, d: 4 }, stopAt: null }
+  },
+  B: {
+    inp: { sex: 'F', dest: 'mars', days: 210, baseHr: 60, hr: { value: 76, ageMin: 6 }, bp: { sbp: 102, dbp: 64, ageMin: 6 },
+           fluid: { ml: 800, ageMin: 25 }, compliance: 62, compression: true, symptoms: [] },
+    prep: { fluid: false, compression: true, cooling: false, symnote: true, area: true },
+    resp: { lying: { hr: 76, sbp: 102, dbp: 64 }, sit: 18,
+            s1: { hr: 26, s: 14, d: 7 }, s3: { hr: 33, s: 17, d: 9 }, stopAt: null }
+  },
+  C: {
+    inp: { sex: 'M', dest: 'moon', days: 90, baseHr: 55, hr: { value: 88, ageMin: 180 }, bp: { sbp: 98, dbp: 60, ageMin: 180 },
+           fluid: { ml: null, ageMin: null }, compliance: 30, compression: false, symptoms: ['dizzy'] },
+    prep: { fluid: false, compression: false, cooling: false, symnote: false, area: false },
+    resp: { lying: { hr: 86, sbp: 98, dbp: 60 }, sit: 22,
+            s1: { hr: 31, s: 18, d: 9 }, s3: { hr: 36, s: 24, d: 12 },
+            stopAt: 70, stopSym: ['dizzy', 'vision', 'presync'] }
+  }
+};
+
+/* Lecturas del simulador en cada momento de la prueba */
+function simRead(P, key) {
+  const L = P.resp.lying, r = Math.round;
+  if (key === 'lying') return { hr: L.hr, sbp: L.sbp, dbp: L.dbp };
+  if (key === 'sit') return { hr: r(L.hr + P.resp.sit) };
+  const k = key === 'stand1' ? P.resp.s1 : P.resp.s3;
+  return { hr: r(L.hr + k.hr), sbp: r(L.sbp - k.s), dbp: r(L.dbp - k.d) };
+}
+/* FC continua simulada (e = segundos de reloj simulado dentro de la etapa) */
+function simHr(P, stage, e) {
+  const R = P.resp, n = Math.sin(e * 1.7) * 1.2 + Math.sin(e * 0.5) * 0.8;
+  if (stage === 'sit') return R.lying.hr + R.sit * Math.min(1, e / 8) + n;
+  if (stage === 'stand') {
+    const d = e <= 20 ? R.sit + (R.s1.hr - R.sit) * (e / 20)
+      : e <= 60 ? R.s1.hr + (R.s1.hr - R.sit) * 0
+      : R.s1.hr + (R.s3.hr - R.s1.hr) * Math.min(1, (e - 60) / 120);
+    return R.lying.hr + d + n;
+  }
+  return R.lying.hr + n;
+}
+if (typeof module !== 'undefined') module.exports = { PROF, simRead, simHr };
+/* ============================================================
+   TEXTOS · ES (principal) y EN (entrega). Una clave = un texto.
+   ============================================================ */
+const DICT = {
+es: {
+  app_tag: 'Apoyo a la decisión para el primer paso en la superficie',
+  chip_sim: 'Datos simulados', chip_manual: 'Datos manuales', chip_ble: 'FC Bluetooth + manual',
+  notmed: 'Prototipo de hackathon. No es un dispositivo médico.',
+  tab_home: 'Estado', tab_prep: 'Preparar', tab_test: 'Evaluar', tab_dec: 'Decisión', tab_log: 'Registro', tab_data: 'Datos',
+  theme_toggle: 'Cambiar tema', lang_toggle: 'Cambiar idioma',
+
+  ph_descent: 'Descenso', ph_safe: 'Nave segura', ph_rest: 'Descanso', ph_test: 'Evaluación', ph_dec: 'Decisión',
+  ph_note: 'La app sigue eventos, no la hora. En el descenso permanece pasiva.',
+
+  h_risk: 'Estimación previa', h_estimate: 'estimación',
+  h_risk_note: 'Se calcula con reglas provisionales. No es una probabilidad ni un diagnóstico.',
+  lv_low: 'Bajo', lv_mod: 'Moderado', lv_high: 'Alto', lv_unk: 'Indeterminado',
+  lv_low_d: 'Sin señales preocupantes en los datos disponibles.',
+  lv_mod_d: 'Hay factores que piden atención y una prueba cuidadosa.',
+  lv_high_d: 'Hay varios factores o síntomas. Pide apoyo y no te levantes solo.',
+  lv_unk_d: 'Faltan datos o están desactualizados. Un dato ausente no significa riesgo bajo.',
+  conf: 'Calidad de los datos', conf_high: 'Alta', conf_mid: 'Media', conf_low: 'Baja',
+  factors: 'Factores considerados',
+  f_hr: 'FC en reposo', f_bp: 'Presión en reposo', f_fluid: 'Líquidos ingeridos', f_compression: 'Prenda de compresión',
+  f_compliance: 'Contramedidas de la misión', f_duration: 'Duración de la misión', f_gravity: 'Gravedad del destino',
+  f_sex: 'Sexo biológico', f_symptoms: 'Síntomas ahora',
+  st_up: 'Suma riesgo', st_ok: 'Sin alerta', st_ctx: 'Contexto', st_missing: 'Falta', st_stale: 'Desactualizado', st_invalid: 'Fuera de rango',
+  fd_hr_up: '{v} lpm, {d} lpm sobre tu línea base de {b}.', fd_hr_ok: '{v} lpm. Línea base {b}.',
+  fd_hr_missing: 'Sin medición.', fd_hr_stale: 'Última medición hace {age} min.', fd_hr_invalid: 'Valor fuera del rango plausible.',
+  fd_bp_up: '{s}/{d} mmHg. Sistólica baja en reposo.', fd_bp_ok: '{s}/{d} mmHg.',
+  fd_bp_missing: 'Sin presión. La evaluación necesitará el manguito.', fd_bp_stale: 'Última medición hace {age} min.', fd_bp_invalid: 'Valor fuera del rango plausible.',
+  fd_fluid_up: '{ml} ml, {pct}% del objetivo.', fd_fluid_ok: '{ml} ml, {pct}% del objetivo.',
+  fd_fluid_missing: 'Sin registro de líquidos.', fd_fluid_stale: 'Último registro hace {age} min.', fd_fluid_invalid: 'Valor fuera del rango plausible.',
+  fd_compression_up: 'No puesta. La carga de líquidos sola no protegió a una parte de los astronautas.', fd_compression_ok: 'Puesta.',
+  fd_compliance_up: '{v}% de cumplimiento.', fd_compliance_ok: '{v}% de cumplimiento.',
+  fd_compliance_missing: 'Sin registro de cumplimiento.', fd_compliance_invalid: 'Valor fuera del rango plausible.',
+  fd_duration_up: '{d} días de exposición. La adaptación suele crecer con el tiempo.', fd_duration_ok: '{d} días.',
+  fd_gravity_ctx: '{g} g en el destino: menos carga al pararse que en la Tierra. Solo contexto.',
+  fd_sex_ctxF: 'Se documenta mayor susceptibilidad en mujeres. No cambia el nivel por sí sola.',
+  fd_sex_ctxM: 'Solo contexto. No cambia el nivel por sí solo.',
+  fd_symptoms_up: '{n} síntoma(s) reportado(s).', fd_symptoms_ok: 'Ninguno.',
+  cta_prep: 'Completar preparación', cta_test: 'Comenzar evaluación', cta_cont: 'Continuar evaluación', cta_dec: 'Ver decisión',
+  last_title: 'Última decisión',
+
+  p_title: 'Preparación', p_sub: 'Medidas de apoyo según el protocolo de la misión. Los tiempos son configurables y provisionales.',
+  p_pre: 'Antes de la entrada', p_post: 'Tras tocar suelo', p_when: 'Objetivo: T−{m} min', p_done: 'Hecho a las {time}',
+  p_progress: '{n} de {m} medidas hechas',
+  pi_fluid: 'Carga de líquidos (agua y sal)', pi_fluid_d: 'Objetivo {ml} ml según protocolo. Registra lo que bebes.',
+  pi_compression: 'Prenda de compresión puesta', pi_compression_d: 'Ayuda a que la sangre no se acumule en las piernas.',
+  pi_cooling: 'Refrigeración corporal', pi_cooling_d: 'Solo si el protocolo la indica. Puede ayudar a tolerar estar de pie.',
+  pi_symnote: 'Anotar síntomas y FC en reposo', pi_symnote_d: 'Sirve de comparación para la evaluación.',
+  pi_area: 'Zona despejada y apoyos al alcance', pi_area_d: 'Superficie estable, agarraderas cerca y nada en el camino.',
+  p_add: '+250 ml', p_reset: 'Reiniciar',
+
+  e_title: 'Evaluación guiada de pie',
+  e_idle_d: 'Mide cómo responde tu cuerpo al ponerte de pie: acostado 5 min, sentado 30 s y de pie 3 min. No es una prueba diagnóstica.',
+  e_start: 'Comenzar', e_abort: 'Cancelar evaluación',
+  e_high_warn: 'Tu estimación previa es alta. Hazla solo con un compañero a tu lado, o repite el descanso.',
+  e_unk_warn: 'Faltan datos previos. La prueba los medirá, pero revisa la pestaña Datos.',
+  g_title: 'Antes de empezar', g_safe: 'La nave está estable y no hay peligro inmediato',
+  g_support: 'Tengo apoyo al alcance o un compañero a mi lado', g_nosym: 'No tengo síntomas graves ahora',
+  g_continue: 'Empezar descanso', g_need: 'Marca las tres casillas para continuar.',
+  s_rest: 'Descanso', s_rest_d: 'Quédate acostado o reclinado. No te levantes todavía.',
+  s_lying: 'Acostado', s_lying_d: 'Acuéstate boca arriba y quédate quieto.',
+  s_sit: 'Sentado', s_sit_d: 'Siéntate con los pies hacia abajo.',
+  s_stand: 'De pie', s_stand_d: 'Levántate con apoyo y quédate quieto.',
+  s_skip: 'Saltar descanso (solo demo)',
+  t_real: 'Tiempos reales: {rest} min, 5 min, 30 s y 3 min.', t_demo: 'Demo ×{x}: el reloj corre {x} veces más rápido.',
+  c_title: 'Registra las lecturas', c_hr: 'FC (lpm)', c_sbp: 'Sistólica', c_dbp: 'Diastólica',
+  c_at1: 'A 1 minuto', c_at3: 'A 3 minutos', c_lying: 'Acostado', c_sit: 'Sentado',
+  c_hint: 'Si falta un dato, el resultado será «datos insuficientes».',
+  c_next: 'Registrar y continuar', c_finish: 'Registrar y ver decisión', c_sim: 'Valores del simulador. Puedes editarlos.',
+  c_nocuff: 'Sin manguito: solo FC y síntomas.', c_locked: 'Disponible a {s} s', c_ready: 'Listo para registrar',
+  hr_live: 'FC ahora', hr_unit: 'lpm', hr_manual: 'Ingresa la FC en cada lectura.',
+  sy_btn: 'Tengo síntomas · Detener', sy_title: '¿Qué sientes?', sy_confirm: 'Detener y ver decisión', sy_cancel: 'Seguir',
+  sy_sim: 'El simulador reporta: {list}.',
+  sym_dizzy: 'Mareo o aturdimiento', sym_vision: 'Visión borrosa o en túnel', sym_nausea: 'Náusea',
+  sym_weak: 'Debilidad en las piernas', sym_palp: 'Palpitaciones', sym_presync: 'Siento que me voy a desmayar', sym_faint: 'Me desmayé',
+  say_gate: 'Antes de empezar, confirma que la nave es segura.', say_rest: 'Descanso. Quédate acostado.',
+  say_lying: 'Acuéstate boca arriba y quédate quieto.', say_sit: 'Siéntate con los pies hacia abajo.',
+  say_stand: 'Levántate con apoyo y quédate quieto.', say_capture: 'Registra las lecturas.',
+
+  dw_go: 'Puede caminar', dw_wait: 'Espera y recuéstate', dw_nogo: 'No salgas aún', dw_unk: 'Datos insuficientes',
+  d_empty_t: 'Aún no hay decisión', d_empty_d: 'Completa la evaluación guiada o reporta un síntoma.',
+  d_head: 'Decisión de apoyo', d_when: 'a las {time}',
+  nx_walk: 'Camina despacio, con apoyo cerca y sin giros bruscos. Si sientes mareo, siéntate de inmediato.',
+  nx_lie_down: 'Recuéstate con las piernas elevadas y bebe agua. No intentes levantarte solo.',
+  nx_rest_repeat: 'Descansa, bebe líquidos y repite la evaluación cuando termine el plazo.',
+  nx_no_bp: 'Sin presión no se puede confirmar. Permanece sentado. Si debes moverte, hazlo con apoyo, a pasos cortos, y siéntate ante cualquier síntoma. Repite cuando tengas el manguito.',
+  d_next: 'Siguiente paso',
+  r_sym_severe: 'Reportaste un síntoma grave.', r_stopped: 'Detuviste la evaluación por síntomas ({n}).',
+  r_no_bp: 'Faltan lecturas de presión para decidir.',
+  r_ho: 'La presión cayó {s}/{d} mmHg al ponerte de pie. El criterio clínico es 20/10.', r_ho_sym: 'Además hay síntomas.',
+  r_sym_mild: 'Reportaste síntomas leves.',
+  r_marg: 'Los cambios están cerca del límite (sistólica −{s}, diastólica −{d}, FC +{h}).',
+  r_pre_high: 'Tu estimación previa es alta, aunque la prueba no mostró alerta.',
+  r_pass: 'Presión (−{s}/−{d} mmHg) y FC (+{h} lpm) dentro de los márgenes.',
+  r_pre_mod: 'La estimación previa era moderada: avanza con precaución.',
+  r_pre_unk: 'Faltaban datos previos. La decisión se basa en la prueba.',
+  r_new_sym: 'Síntoma nuevo reportado después de la última decisión.',
+  d_expired_w: 'Decisión vencida',
+  d_valid: 'Válido durante', d_repeat: 'Repite en', d_expired: 'Resultado vencido. Repite la evaluación.',
+  d_metrics: 'Cambios al ponerte de pie', m_sbp: 'Sistólica', m_dbp: 'Diastólica', m_hr: 'FC', m_na: 'sin dato',
+  d_pre: 'Estimación previa', d_repeat_btn: 'Repetir evaluación', d_report: 'Reportar síntoma nuevo',
+  d_saved: 'Guardada en el registro, pendiente de enviar a Tierra.',
+  d_disc: 'Apoyo a la decisión con reglas provisionales (v{v}). No es una orden médica.',
+  d_demo: 'Reloj de demo ×{x}', d_earth: 'Si hay enlace con Tierra, avisa. Con retraso, no esperes la respuesta para protegerte.',
+
+  l_title: 'Registro de la misión', l_empty: 'Sin eventos. Cada evaluación, síntoma y medida de preparación queda aquí.',
+  l_pending: 'Pendiente de enviar', l_sent: 'Enviado a Tierra', l_send: 'Simular enlace con Tierra',
+  l_send_d: 'Envía los pendientes. En Marte el retraso llega a ~20 min por sentido.',
+  l_copy: 'Copiar registro (JSON)', l_copied: 'Copiado', l_copy_fail: 'Selecciona y copia el texto de abajo.',
+  l_clear: 'Borrar registro', l_clear_c: 'Confirmar borrado', l_trace: 'Ver datos y reglas usados',
+  lk_eval: 'Evaluación', lk_symptom: 'Síntoma', lk_prep: 'Preparación', l_prep_item: '{item}: hecho', l_prep_undo: '{item}: desmarcado',
+  l_fluid: '+{ml} ml de líquidos registrados', l_n_pending: '{n} pendientes',
+
+  s_source: 'Fuente de datos', src_sim: 'Simulador', src_manual: 'Manual', src_ble: 'FC Bluetooth',
+  src_sim_d: 'Un astronauta ficticio responde a la prueba. Es la fuente de la demo.',
+  src_manual_d: 'Tú ingresas cada lectura, por ejemplo con un manguito y un reloj.',
+  src_ble_d: 'La FC llega de una banda o reloj por Bluetooth. La presión se ingresa a mano.',
+  s_profile: 'Perfil simulado', pf_A: 'Astronauta A', pf_A_d: 'Estable. Registros completos y contramedidas cumplidas.',
+  pf_B: 'Astronauta B', pf_B_d: 'Deriva respecto a su línea base y cumplimiento parcial.',
+  pf_C: 'Astronauta C', pf_C_d: 'Síntomas y datos incompletos o antiguos.', pf_fict: 'Perfiles ficticios con datos sintéticos.',
+  o_title: 'Opciones', o_nocuff: 'Sin manguito (falla o no disponible)', o_speed: 'Velocidad del reloj', o_voice: 'Guía por voz',
+  o_big: 'Texto grande', o_lang: 'Idioma', o_theme: 'Tema', th_auto: 'Auto', th_dark: 'Oscuro', th_light: 'Claro',
+  i_title: 'Datos de entrada', i_note: 'Los valores del simulador se pueden editar. «Hace» indica cuántos minutos tiene la medición.',
+  i_sex: 'Sexo biológico', i_M: 'Hombre', i_F: 'Mujer', i_dest: 'Destino', i_moon: 'Luna', i_mars: 'Marte',
+  i_days: 'Días en microgravedad', i_basehr: 'FC base preflight (lpm)', i_hr: 'FC en reposo (lpm)', i_sbp: 'Sistólica (mmHg)',
+  i_dbp: 'Diastólica (mmHg)', i_fluid: 'Líquidos (ml)', i_comp: 'Cumplimiento de contramedidas (%)', i_age: 'hace (min)',
+  b_title: 'FC por Bluetooth', b_d: 'Funciona en Chrome o Edge (escritorio o Android) con HTTPS y un dispositivo que transmita FC por Bluetooth. Algunas vistas incrustadas lo bloquean. La presión se ingresa a mano.',
+  b_connect: 'Conectar', b_unsupported: 'Este navegador o vista no permite Web Bluetooth. Usa Chrome o Edge.',
+  b_fail: 'No se pudo conectar: {e}', b_ok: 'Conectado. FC {hr} lpm.', b_wait: 'Conectando…', b_idle: 'Sin conectar.',
+  ru_title: 'Reglas y umbrales', ru_note: 'Provisionales y editables. Cada valor indica su origen. Cambiarlos modifica las estimaciones y decisiones.',
+  ru_reset: 'Restablecer reglas', or_clinical: 'Criterio clínico', or_ref: 'Referencia', or_prov: 'Provisional', or_protocol: 'Protocolo publicado',
+  th_sbp_drop_ho: 'Caída de sistólica que marca hipotensión (mmHg)', th_dbp_drop_ho: 'Caída de diastólica que marca hipotensión (mmHg)',
+  th_sbp_drop_marg: 'Caída de sistólica en zona límite (mmHg)', th_dbp_drop_marg: 'Caída de diastólica en zona límite (mmHg)',
+  th_hr_rise_marg: 'Aumento de FC en zona límite (lpm)', th_hr_dev_base: 'FC reposo sobre línea base que suma (lpm)',
+  th_sbp_low: 'Sistólica baja en reposo (mmHg)', th_fluid_target_ml: 'Objetivo de líquidos (ml)',
+  th_comp_low: 'Cumplimiento bajo (%)', th_comp_ok: 'Cumplimiento suficiente (%)', th_long_days: 'Misión larga desde (días)',
+  th_age_hr: 'FC válida hasta (min)', th_age_bp: 'Presión válida hasta (min)', th_age_fluid: 'Líquidos válidos hasta (min)',
+  th_valid_go: 'Vigencia de «puede caminar» (min)', th_repeat_wait: 'Repetir tras «espera» (min)', th_repeat_nogo: 'Repetir tras «no salgas» (min)',
+  th_pts_mod: 'Factores internos para nivel moderado', th_pts_high: 'Factores internos para nivel alto',
+  du_rest: 'Descanso previo (s)', du_lying: 'Acostado (s)', du_sit: 'Sentado (s)', du_stand: 'De pie (s)',
+  src_title: 'Fuentes y referencias', lim_title: 'Qué no hace',
+  lim_1: 'No predice ni diagnostica. Estima con factores visibles y verifica al ponerse de pie.',
+  lim_2: 'No es un dispositivo médico ni sustituye un protocolo clínico.',
+  lim_3: 'Los umbrales marcados como provisionales no están validados en astronautas.',
+  lim_4: 'El manguito da pocas lecturas. Los estudios usaron presión continua en el dedo.',
+  lim_5: 'La hidratación se registra, no se mide. Los relojes aún no dan presión validada.',
+  lim_6: 'Los datos de la demo son sintéticos y los perfiles son ficticios.',
+  lim_7: 'La prueba mide la tolerancia a estar de pie. No mide aptitud para una actividad extravehicular.',
+  ref_1: 'Wood et al., npj Microgravity, 2019 (PMC6789148). Protocolo acostado 5 min, sentado 30 s y de pie 3 min en 8 astronautas tras ~167 días en la ISS. La prueba en vuelo no predijo a quienes desarrollaron hipotensión.',
+  ref_2: 'Freeman et al., 2011. Consenso sobre hipotensión ortostática: caída de ≥20 mmHg de sistólica o ≥10 de diastólica en 3 min de pie.',
+  ref_3: 'Sheldon et al., Heart Rhythm, 2015. Referencia de aumento de FC ≥30 lpm en adultos.',
+  ref_4: 'NASA Human Research Program. Riesgos cardiovasculares y de adaptación en vuelo espacial (revisar la edición vigente).',
+  reset_all: 'Borrar todos los datos guardados'
+},
+en: {
+  app_tag: 'Decision support for the first step on the surface',
+  chip_sim: 'Simulated data', chip_manual: 'Manual data', chip_ble: 'Bluetooth HR + manual',
+  notmed: 'Hackathon prototype. Not a medical device.',
+  tab_home: 'Status', tab_prep: 'Prepare', tab_test: 'Assess', tab_dec: 'Decision', tab_log: 'Log', tab_data: 'Data',
+  theme_toggle: 'Change theme', lang_toggle: 'Change language',
+
+  ph_descent: 'Descent', ph_safe: 'Craft safe', ph_rest: 'Rest', ph_test: 'Assessment', ph_dec: 'Decision',
+  ph_note: 'The app follows events, not the clock. It stays passive during descent.',
+
+  h_risk: 'Pre-assessment estimate', h_estimate: 'estimate',
+  h_risk_note: 'Calculated with provisional rules. Not a probability or a diagnosis.',
+  lv_low: 'Low', lv_mod: 'Moderate', lv_high: 'High', lv_unk: 'Undetermined',
+  lv_low_d: 'No concerning signs in the available data.',
+  lv_mod_d: 'Some factors call for attention and a careful test.',
+  lv_high_d: 'Several factors or symptoms. Ask for help and do not stand up alone.',
+  lv_unk_d: 'Data is missing or outdated. Missing data does not mean low risk.',
+  conf: 'Data quality', conf_high: 'High', conf_mid: 'Medium', conf_low: 'Low',
+  factors: 'Factors considered',
+  f_hr: 'Resting HR', f_bp: 'Resting blood pressure', f_fluid: 'Fluid intake', f_compression: 'Compression garment',
+  f_compliance: 'Mission countermeasures', f_duration: 'Mission duration', f_gravity: 'Destination gravity',
+  f_sex: 'Biological sex', f_symptoms: 'Symptoms now',
+  st_up: 'Adds risk', st_ok: 'No alert', st_ctx: 'Context', st_missing: 'Missing', st_stale: 'Outdated', st_invalid: 'Out of range',
+  fd_hr_up: '{v} bpm, {d} bpm above your baseline of {b}.', fd_hr_ok: '{v} bpm. Baseline {b}.',
+  fd_hr_missing: 'No measurement.', fd_hr_stale: 'Last measured {age} min ago.', fd_hr_invalid: 'Value outside the plausible range.',
+  fd_bp_up: '{s}/{d} mmHg. Low systolic at rest.', fd_bp_ok: '{s}/{d} mmHg.',
+  fd_bp_missing: 'No blood pressure. The assessment will need the cuff.', fd_bp_stale: 'Last measured {age} min ago.', fd_bp_invalid: 'Value outside the plausible range.',
+  fd_fluid_up: '{ml} ml, {pct}% of target.', fd_fluid_ok: '{ml} ml, {pct}% of target.',
+  fd_fluid_missing: 'No fluid log.', fd_fluid_stale: 'Last logged {age} min ago.', fd_fluid_invalid: 'Value outside the plausible range.',
+  fd_compression_up: 'Not worn. Fluid loading alone did not protect some astronauts.', fd_compression_ok: 'Worn.',
+  fd_compliance_up: '{v}% compliance.', fd_compliance_ok: '{v}% compliance.',
+  fd_compliance_missing: 'No compliance record.', fd_compliance_invalid: 'Value outside the plausible range.',
+  fd_duration_up: '{d} days of exposure. Adaptation tends to grow with time.', fd_duration_ok: '{d} days.',
+  fd_gravity_ctx: '{g} g at the destination: less load on standing than on Earth. Context only.',
+  fd_sex_ctxF: 'Higher susceptibility is documented in women. It does not change the level by itself.',
+  fd_sex_ctxM: 'Context only. It does not change the level by itself.',
+  fd_symptoms_up: '{n} symptom(s) reported.', fd_symptoms_ok: 'None.',
+  cta_prep: 'Finish preparation', cta_test: 'Start assessment', cta_cont: 'Continue assessment', cta_dec: 'See decision',
+  last_title: 'Latest decision',
+
+  p_title: 'Preparation', p_sub: 'Support measures following the mission protocol. Timings are configurable and provisional.',
+  p_pre: 'Before entry', p_post: 'After touchdown', p_when: 'Target: T−{m} min', p_done: 'Done at {time}',
+  p_progress: '{n} of {m} measures done',
+  pi_fluid: 'Fluid loading (water and salt)', pi_fluid_d: 'Target {ml} ml per protocol. Log what you drink.',
+  pi_compression: 'Compression garment on', pi_compression_d: 'Helps keep blood from pooling in the legs.',
+  pi_cooling: 'Body cooling', pi_cooling_d: 'Only if the protocol calls for it. May help with standing tolerance.',
+  pi_symnote: 'Note symptoms and resting HR', pi_symnote_d: 'Gives the assessment something to compare against.',
+  pi_area: 'Clear area and supports within reach', pi_area_d: 'Stable surface, handholds close, nothing in the way.',
+  p_add: '+250 ml', p_reset: 'Reset',
+
+  e_title: 'Guided standing assessment',
+  e_idle_d: 'Measures how your body responds to standing: lying 5 min, sitting 30 s, standing 3 min. It is not a diagnostic test.',
+  e_start: 'Start', e_abort: 'Cancel assessment',
+  e_high_warn: 'Your pre-assessment estimate is high. Do this only with a crewmate beside you, or extend the rest.',
+  e_unk_warn: 'Some prior data is missing. The test will measure it, but check the Data tab.',
+  g_title: 'Before you start', g_safe: 'The craft is stable and there is no immediate danger',
+  g_support: 'I have support within reach or a crewmate beside me', g_nosym: 'I have no severe symptoms right now',
+  g_continue: 'Start rest', g_need: 'Tick all three boxes to continue.',
+  s_rest: 'Rest', s_rest_d: 'Stay lying down or reclined. Do not stand up yet.',
+  s_lying: 'Lying', s_lying_d: 'Lie on your back and stay still.',
+  s_sit: 'Sitting', s_sit_d: 'Sit with your feet down.',
+  s_stand: 'Standing', s_stand_d: 'Stand up with support and stay still.',
+  s_skip: 'Skip rest (demo only)',
+  t_real: 'Real timings: {rest} min, 5 min, 30 s and 3 min.', t_demo: 'Demo ×{x}: the clock runs {x} times faster.',
+  c_title: 'Record the readings', c_hr: 'HR (bpm)', c_sbp: 'Systolic', c_dbp: 'Diastolic',
+  c_at1: 'At 1 minute', c_at3: 'At 3 minutes', c_lying: 'Lying', c_sit: 'Sitting',
+  c_hint: 'If a reading is missing, the result will be “insufficient data”.',
+  c_next: 'Record and continue', c_finish: 'Record and see decision', c_sim: 'Simulator values. You can edit them.',
+  c_nocuff: 'No cuff: HR and symptoms only.', c_locked: 'Available at {s} s', c_ready: 'Ready to record',
+  hr_live: 'HR now', hr_unit: 'bpm', hr_manual: 'Enter the HR with each reading.',
+  sy_btn: 'I have symptoms · Stop', sy_title: 'What do you feel?', sy_confirm: 'Stop and see decision', sy_cancel: 'Keep going',
+  sy_sim: 'The simulator reports: {list}.',
+  sym_dizzy: 'Dizziness or lightheadedness', sym_vision: 'Blurred or tunnel vision', sym_nausea: 'Nausea',
+  sym_weak: 'Leg weakness', sym_palp: 'Palpitations', sym_presync: 'I feel I am about to faint', sym_faint: 'I fainted',
+  say_gate: 'Before you start, confirm the craft is safe.', say_rest: 'Rest. Stay lying down.',
+  say_lying: 'Lie on your back and stay still.', say_sit: 'Sit with your feet down.',
+  say_stand: 'Stand up with support and stay still.', say_capture: 'Record the readings.',
+
+  dw_go: 'Can walk', dw_wait: 'Wait and lie down', dw_nogo: 'Do not go out yet', dw_unk: 'Insufficient data',
+  d_empty_t: 'No decision yet', d_empty_d: 'Complete the guided assessment or report a symptom.',
+  d_head: 'Support decision', d_when: 'at {time}',
+  nx_walk: 'Walk slowly with support close and no sudden turns. If you feel dizzy, sit down at once.',
+  nx_lie_down: 'Lie down with your legs raised and drink water. Do not try to stand up alone.',
+  nx_rest_repeat: 'Rest, drink fluids and repeat the assessment when the timer ends.',
+  nx_no_bp: 'Without blood pressure this cannot be confirmed. Stay seated. If you must move, do it with support, in short steps, and sit at any symptom. Repeat when you have the cuff.',
+  d_next: 'Next step',
+  r_sym_severe: 'You reported a severe symptom.', r_stopped: 'You stopped the assessment because of symptoms ({n}).',
+  r_no_bp: 'Blood pressure readings are missing, so it cannot be decided.',
+  r_ho: 'Blood pressure fell {s}/{d} mmHg on standing. The clinical criterion is 20/10.', r_ho_sym: 'There are also symptoms.',
+  r_sym_mild: 'You reported mild symptoms.',
+  r_marg: 'Changes are close to the limit (systolic −{s}, diastolic −{d}, HR +{h}).',
+  r_pre_high: 'Your pre-assessment estimate is high, even though the test showed no alert.',
+  r_pass: 'Blood pressure (−{s}/−{d} mmHg) and HR (+{h} bpm) are within margins.',
+  r_pre_mod: 'The pre-assessment estimate was moderate: go with caution.',
+  r_pre_unk: 'Prior data was missing. The decision rests on the test.',
+  r_new_sym: 'New symptom reported after the last decision.',
+  d_expired_w: 'Decision expired',
+  d_valid: 'Valid for', d_repeat: 'Repeat in', d_expired: 'Result expired. Repeat the assessment.',
+  d_metrics: 'Changes on standing', m_sbp: 'Systolic', m_dbp: 'Diastolic', m_hr: 'HR', m_na: 'no data',
+  d_pre: 'Pre-assessment estimate', d_repeat_btn: 'Repeat assessment', d_report: 'Report a new symptom',
+  d_saved: 'Saved to the log, waiting to be sent to Earth.',
+  d_disc: 'Decision support using provisional rules (v{v}). Not a medical order.',
+  d_demo: 'Demo clock ×{x}', d_earth: 'If there is a link to Earth, notify them. With the delay, do not wait for a reply to stay safe.',
+
+  l_title: 'Mission log', l_empty: 'No events. Every assessment, symptom and preparation measure is recorded here.',
+  l_pending: 'Waiting to send', l_sent: 'Sent to Earth', l_send: 'Simulate link to Earth',
+  l_send_d: 'Sends pending entries. At Mars the delay reaches ~20 min each way.',
+  l_copy: 'Copy log (JSON)', l_copied: 'Copied', l_copy_fail: 'Select and copy the text below.',
+  l_clear: 'Clear log', l_clear_c: 'Confirm clearing', l_trace: 'View data and rules used',
+  lk_eval: 'Assessment', lk_symptom: 'Symptom', lk_prep: 'Preparation', l_prep_item: '{item}: done', l_prep_undo: '{item}: unchecked',
+  l_fluid: '+{ml} ml of fluid logged', l_n_pending: '{n} pending',
+
+  s_source: 'Data source', src_sim: 'Simulator', src_manual: 'Manual', src_ble: 'Bluetooth HR',
+  src_sim_d: 'A fictional astronaut responds to the test. This is the demo source.',
+  src_manual_d: 'You enter each reading yourself, for example from a cuff and a watch.',
+  src_ble_d: 'HR comes from a band or watch over Bluetooth. Blood pressure is entered by hand.',
+  s_profile: 'Simulated profile', pf_A: 'Astronaut A', pf_A_d: 'Stable. Complete records and countermeasures met.',
+  pf_B: 'Astronaut B', pf_B_d: 'Drifting from baseline with partial compliance.',
+  pf_C: 'Astronaut C', pf_C_d: 'Symptoms and incomplete or old data.', pf_fict: 'Fictional profiles with synthetic data.',
+  o_title: 'Options', o_nocuff: 'No cuff (failed or unavailable)', o_speed: 'Clock speed', o_voice: 'Voice guidance',
+  o_big: 'Large text', o_lang: 'Language', o_theme: 'Theme', th_auto: 'Auto', th_dark: 'Dark', th_light: 'Light',
+  i_title: 'Input data', i_note: 'Simulator values can be edited. “Ago” is how many minutes old the reading is.',
+  i_sex: 'Biological sex', i_M: 'Male', i_F: 'Female', i_dest: 'Destination', i_moon: 'Moon', i_mars: 'Mars',
+  i_days: 'Days in microgravity', i_basehr: 'Preflight baseline HR (bpm)', i_hr: 'Resting HR (bpm)', i_sbp: 'Systolic (mmHg)',
+  i_dbp: 'Diastolic (mmHg)', i_fluid: 'Fluids (ml)', i_comp: 'Countermeasure compliance (%)', i_age: 'ago (min)',
+  b_title: 'Bluetooth heart rate', b_d: 'Works in Chrome or Edge (desktop or Android) over HTTPS with a device that broadcasts HR over Bluetooth. Some embedded views block it. Blood pressure is entered by hand.',
+  b_connect: 'Connect', b_unsupported: 'This browser or view does not allow Web Bluetooth. Use Chrome or Edge.',
+  b_fail: 'Could not connect: {e}', b_ok: 'Connected. HR {hr} bpm.', b_wait: 'Connecting…', b_idle: 'Not connected.',
+  ru_title: 'Rules and thresholds', ru_note: 'Provisional and editable. Each value shows its origin. Changing them changes estimates and decisions.',
+  ru_reset: 'Reset rules', or_clinical: 'Clinical criterion', or_ref: 'Reference', or_prov: 'Provisional', or_protocol: 'Published protocol',
+  th_sbp_drop_ho: 'Systolic drop that marks hypotension (mmHg)', th_dbp_drop_ho: 'Diastolic drop that marks hypotension (mmHg)',
+  th_sbp_drop_marg: 'Systolic drop in borderline zone (mmHg)', th_dbp_drop_marg: 'Diastolic drop in borderline zone (mmHg)',
+  th_hr_rise_marg: 'HR rise in borderline zone (bpm)', th_hr_dev_base: 'Resting HR above baseline that counts (bpm)',
+  th_sbp_low: 'Low resting systolic (mmHg)', th_fluid_target_ml: 'Fluid target (ml)',
+  th_comp_low: 'Low compliance (%)', th_comp_ok: 'Sufficient compliance (%)', th_long_days: 'Long mission from (days)',
+  th_age_hr: 'HR valid for (min)', th_age_bp: 'Blood pressure valid for (min)', th_age_fluid: 'Fluids valid for (min)',
+  th_valid_go: 'Validity of “can walk” (min)', th_repeat_wait: 'Repeat after “wait” (min)', th_repeat_nogo: 'Repeat after “do not go” (min)',
+  th_pts_mod: 'Internal factors for moderate level', th_pts_high: 'Internal factors for high level',
+  du_rest: 'Pre-test rest (s)', du_lying: 'Lying (s)', du_sit: 'Sitting (s)', du_stand: 'Standing (s)',
+  src_title: 'Sources and references', lim_title: 'What it does not do',
+  lim_1: 'It does not predict or diagnose. It estimates with visible factors and verifies on standing.',
+  lim_2: 'It is not a medical device and does not replace a clinical protocol.',
+  lim_3: 'Thresholds marked provisional are not validated in astronauts.',
+  lim_4: 'A cuff gives few readings. The studies used continuous finger pressure.',
+  lim_5: 'Hydration is logged, not measured. Watches do not yet give validated blood pressure.',
+  lim_6: 'Demo data is synthetic and the profiles are fictional.',
+  lim_7: 'The test measures tolerance to standing. It does not measure fitness for an extravehicular activity.',
+  ref_1: 'Wood et al., npj Microgravity, 2019 (PMC6789148). Lying 5 min, sitting 30 s, standing 3 min protocol in 8 astronauts after ~167 days on the ISS. The in-flight test did not predict who developed hypotension.',
+  ref_2: 'Freeman et al., 2011. Consensus on orthostatic hypotension: a fall of ≥20 mmHg systolic or ≥10 diastolic within 3 min of standing.',
+  ref_3: 'Sheldon et al., Heart Rhythm, 2015. Reference for an HR rise of ≥30 bpm in adults.',
+  ref_4: 'NASA Human Research Program. Cardiovascular and adaptation risks of spaceflight (check the current edition).',
+  reset_all: 'Delete all saved data'
+}
+};
+if (typeof module !== 'undefined') module.exports = { DICT };
+/* ============================================================
+   INTERFAZ · estado, vistas y flujo guiado
+   ============================================================ */
+const KEY = 'merlu.v2';
+const TIMED = ['rest', 'lying', 'sit', 'stand'];
+const TABS = ['home', 'prep', 'test', 'decision', 'log', 'data'];
+const LVMAP = { low: 'go', mod: 'wait', high: 'nogo', unk: 'unk' };
+const PREP = [
+  { id: 'fluid', phase: 'pre', tmin: 120 }, { id: 'compression', phase: 'pre', tmin: 90 },
+  { id: 'cooling', phase: 'pre', tmin: 60 }, { id: 'symnote', phase: 'pre', tmin: 30 },
+  { id: 'area', phase: 'post', tmin: null }
+];
+const ICONS = {
+  home: '<path d="M3 12h4l2-6 4 12 2-6h6"/>',
+  prep: '<path d="M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"/>',
+  test: '<circle cx="12" cy="5" r="2"/><path d="M12 8v7M8 11h8M10 21l2-6 2 6"/>',
+  decision: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/>',
+  log: '<path d="M5 4h14v16H5z"/><path d="M8 9h8M8 13h8M8 17h5"/>',
+  data: '<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>'
+};
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const clone = o => JSON.parse(JSON.stringify(o));
+
+function defaults() {
+  const P = PROF.A;
+  return { lang: 'en', theme: 'auto', tab: 'home', src: 'sim', profile: 'A', noCuff: false, speed: 10, voice: false, big: false,
+    inputs: clone(P.inp), prep: clone(P.prep), prepTs: {}, rules: clone(DEFAULT_RULES), last: null, log: [] };
+}
+function load() {
+  try { const j = JSON.parse(localStorage.getItem(KEY)); if (j && j.v === 1) return Object.assign(defaults(), j.s); } catch (e) { }
+  return defaults();
+}
+let S = load();
+function save() {
+  try {
+    const { lang, theme, src, profile, noCuff, speed, voice, big, inputs, prep, prepTs, rules, last, log } = S;
+    localStorage.setItem(KEY, JSON.stringify({ v: 1, s: { lang, theme, src, profile, noCuff, speed, voice, big, inputs, prep, prepTs, rules, last, log } }));
+  } catch (e) { }
+}
+const newTest = () => ({ stage: 'idle', start: 0, await: false, rd: {}, sym: [], series: [], gate: { safe: false, support: false, nosym: false }, s1open: false });
+let T = newTest();
+let LIVE = { hr: null, ts: 0, status: 'idle', err: '' };
+let CONFIRM = null, JSONTXT = null, toastTimer = null;
+
+/* ---------- utilidades ---------- */
+const hasKey = k => (DICT[S.lang] && DICT[S.lang][k] != null) || DICT.es[k] != null;
+function t(k, p) {
+  let s = DICT[S.lang] && DICT[S.lang][k]; if (s == null) s = DICT.es[k]; if (s == null) return k;
+  return s.replace(/\{(\w+)\}/g, (m, n) => (p && p[n] != null ? p[n] : ''));
+}
+const fmtTime = ts => new Date(ts).toLocaleTimeString(S.lang === 'es' ? 'es-CL' : 'en-US', { hour: '2-digit', minute: '2-digit' });
+const mmss = sec => { sec = Math.max(0, Math.ceil(sec)); return String(Math.floor(sec / 60)).padStart(2, '0') + ':' + String(sec % 60).padStart(2, '0'); };
+function toast(msg) { const el = $('#toast'); el.textContent = msg; el.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => { el.hidden = true; }, 2200); }
+function speak(txt) {
+  if (!S.voice) return;
+  try { const u = new SpeechSynthesisUtterance(txt); u.lang = S.lang === 'es' ? 'es-ES' : 'en-US'; speechSynthesis.cancel(); speechSynthesis.speak(u); } catch (e) { }
+}
+function pre() { const i = clone(S.inputs); i.compression = !!S.prep.compression; return estimateRisk(i, S.rules); }
+const prepDone = id => id === 'fluid'
+  ? (S.inputs.fluid && S.inputs.fluid.ml != null && S.inputs.fluid.ml >= 0.9 * S.rules.th.fluid_target_ml) : !!S.prep[id];
+const remaining = L => { const m = L.dec.validMin || L.dec.repeatMin; return m ? m * 60 - (Date.now() - L.ts) / 1000 * (L.speed || 1) : null; };
+
+function addLog(kind, lv, k, p, reasons, trace) {
+  S.log.unshift({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 5), ts: Date.now(), kind, lv, k, p: p || {}, reasons: reasons || [], trace: trace || null, sync: 'pending' });
+  save();
+}
+const entryText = e => t(e.k, Object.assign({}, e.p, e.p && e.p.item ? { item: t(e.p.item) } : {}));
+const reasonText = r => t('r_' + r.c, r.p);
+
+/* ---------- vistas ---------- */
+function factorRow(f) {
+  const dk = 'fd_' + f.id + '_' + f.st + (f.p.sfx || '');
+  return `<li><span class="fl">${t('f_' + f.id)}</span><span class="tag ${f.st}">${t('st_' + f.st)}</span>` +
+    `<span class="fd">${hasKey(dk) ? esc(t(dk, f.p)) : ''}</span></li>`;
+}
+function phaseIdx() {
+  if (T.stage === 'gate') return 1; if (T.stage === 'rest') return 2;
+  if (['lying', 'sit', 'stand'].includes(T.stage)) return 3;
+  if (S.last && !(remaining(S.last) != null && remaining(S.last) <= 0)) return 4;
+  return 0;
+}
+function vHome() {
+  const p = pre(), lv = LVMAP[p.level], pi = phaseIdx();
+  const ph = ['ph_descent', 'ph_safe', 'ph_rest', 'ph_test', 'ph_dec'].map((k, i) =>
+    `<li class="${i < pi ? 'done' : ''}" ${i === pi ? 'aria-current="step"' : ''}>${t(k)}</li>`).join('');
+  let cta;
+  if (T.stage !== 'idle') cta = ['test', 'cta_cont'];
+  else if (S.last && phaseIdx() === 4) cta = ['decision', 'cta_dec'];
+  else if (PREP.some(x => !prepDone(x.id))) cta = ['prep', 'cta_prep'];
+  else cta = ['test', 'cta_test'];
+  let last = '';
+  if (S.last) {
+    const d = S.last.dec;
+    last = `<section class="card" data-lv="${d.level}"><div class="split"><h3>${t('last_title')}</h3><span class="chip lv">${t('dw_' + d.level)}</span></div>
+      <p class="muted small">${t('d_when', { time: fmtTime(S.last.ts) })}</p></section>`;
+  }
+  return `<section class="card stack"><ol class="phases">${ph}</ol><p class="muted small">${t('ph_note')}</p></section>
+  <section class="level" data-lv="${lv}">
+    <div class="split"><h2 style="margin:0;font:600 16px var(--f-body)">${t('h_risk')}</h2><span class="chip lv">${t('h_estimate')}</span></div>
+    <div class="word">${t('lv_' + p.level)}</div>
+    <p>${t('lv_' + p.level + '_d')}</p>
+    <p class="muted small">${t('conf')}: <b>${t('conf_' + p.conf)}</b>. ${t('h_risk_note')}</p>
+  </section>
+  <section class="card"><h3>${t('factors')}</h3><ul class="flist">${p.factors.map(factorRow).join('')}</ul></section>
+  ${last}
+  <button class="btn primary block" data-act="tab" data-tab="${cta[0]}">${t(cta[1])}</button>`;
+}
+
+function vPrep() {
+  const th = S.rules.th, done = PREP.filter(x => prepDone(x.id)).length;
+  const item = x => {
+    const tm = x.tmin != null ? `<span class="muted small">${t('p_when', { m: x.tmin })}</span>` : '';
+    if (x.id === 'fluid') {
+      const ml = S.inputs.fluid.ml || 0, pct = Math.min(100, Math.round(ml / th.fluid_target_ml * 100));
+      return `<div class="card stack"><div class="split"><b>${t('pi_fluid')}</b>${tm}</div><p class="muted small">${t('pi_fluid_d', { ml: th.fluid_target_ml })}</p>
+        <div class="bar ${prepDone('fluid') ? 'go' : ''}"><i style="width:${pct}%"></i></div>
+        <div class="split"><span class="hrnow" style="font-size:26px">${ml} ml</span>
+        <span class="row"><button class="btn" data-act="fluid-reset">${t('p_reset')}</button><button class="btn primary" data-act="fluid-add">${t('p_add')}</button></span></div></div>`;
+    }
+    const on = prepDone(x.id), ts = S.prepTs[x.id];
+    return `<button class="check" role="checkbox" aria-checked="${on}" data-act="prep" data-id="${x.id}"><span class="box">${on ? '✓' : ''}</span>
+      <span><b>${t('pi_' + x.id)}</b><span class="muted small">${t('pi_' + x.id + '_d')}</span>${tm ? '<br>' + tm : ''}${on && ts ? '<br><span class="small" style="color:var(--go)">' + t('p_done', { time: fmtTime(ts) }) + '</span>' : ''}</span></button>`;
+  };
+  return `<section class="card stack"><h2>${t('p_title')}</h2><p class="muted">${t('p_sub')}</p>
+    <div class="bar go"><i style="width:${done / PREP.length * 100}%"></i></div><p class="small muted">${t('p_progress', { n: done, m: PREP.length })}</p></section>
+    <h3 style="margin:4px 2px 0">${t('p_pre')}</h3>${PREP.filter(x => x.phase === 'pre').map(item).join('')}
+    <h3 style="margin:4px 2px 0">${t('p_post')}</h3>${PREP.filter(x => x.phase === 'post').map(item).join('')}`;
+}
+
+/* ----- Evaluación guiada ----- */
+function fld(key, f, label) {
+  const v = T.rd[key] && T.rd[key][f] != null ? T.rd[key][f] : '';
+  const open = key === 'stand1' ? (T.s1open || T.await) : T.await;
+  return `<div class="field"><label for="rd-${key}-${f}">${label}</label><input class="in" id="rd-${key}-${f}" type="number" inputmode="numeric" data-rd="${key}.${f}" value="${v}" ${open ? '' : 'disabled'}></div>`;
+}
+function capBox(key, title) {
+  const bp = !S.noCuff && key !== 'sit';
+  return `<div class="stack"><h3>${title}</h3><div class="${bp ? 'grid3' : 'grid2'}">${fld(key, 'hr', t('c_hr'))}${bp ? fld(key, 'sbp', t('c_sbp')) + fld(key, 'dbp', t('c_dbp')) : ''}</div></div>`;
+}
+function sparkPts() {
+  const s = T.series.slice(-120); if (s.length < 2) return '';
+  const lo = Math.min(...s) - 4, hi = Math.max(...s) + 4;
+  return s.map((v, i) => (i / (s.length - 1) * 300).toFixed(1) + ',' + (60 - (v - lo) / (hi - lo) * 56).toFixed(1)).join(' ');
+}
+function vStage() {
+  const st = T.stage, R = S.rules, dur = R.durations[st], order = TIMED, idx = order.indexOf(st);
+  const steps = order.map((s, i) => `<li class="${i < idx ? 'done' : ''}" ${i === idx ? 'aria-current="step"' : ''}>${t('s_' + s)}</li>`).join('');
+  let cap = '';
+  if (st === 'lying' && T.await) cap = capBox('lying', t('c_lying'));
+  if (st === 'sit' && T.await) cap = capBox('sit', t('c_sit'));
+  if (st === 'stand') cap = capBox('stand1', t('c_at1')) + capBox('stand3', t('c_at3'));
+  let capWrap = '';
+  if (cap) {
+    const note = S.src === 'sim' ? t('c_sim') : (S.src === 'manual' ? t('hr_manual') : '') ;
+    capWrap = `<div class="stack"><h3>${t('c_title')}</h3>${S.noCuff ? `<p class="note">${t('c_nocuff')}</p>` : ''}${note ? `<p class="note">${note}</p>` : ''}${cap}
+      <p class="muted small">${t('c_hint')}</p>
+      <button class="btn primary block" data-act="proceed" id="proceed" ${T.await ? '' : 'disabled'}>${st === 'stand' ? t('c_finish') : t('c_next')}</button></div>`;
+  }
+  const timing = S.speed > 1 ? t('t_demo', { x: S.speed }) : t('t_real', { rest: Math.round(R.durations.rest / 60) });
+  return `<section class="card stack"><ol class="steps">${steps}</ol>
+    <div class="instr" role="status">${t('s_' + st + '_d')}</div>
+    <div class="timer" id="tm">${mmss(T.await ? 0 : dur)}</div><div class="bar"><i id="bar" style="width:${T.await ? 100 : 0}%"></i></div>
+    <div class="split"><div><span class="muted small">${t('hr_live')}</span><div class="hrnow"><span id="hrnow">—</span> <span class="muted small">${t('hr_unit')}</span></div></div></div>
+    <svg class="spark" viewBox="0 0 300 64" preserveAspectRatio="none" aria-hidden="true"><line x1="0" y1="32" x2="300" y2="32"/><polyline id="spk" points="${sparkPts()}"/></svg>
+    <p class="muted small">${timing}</p>
+    <button class="btn danger block sym-btn" data-act="sym-open">${t('sy_btn')}</button>
+    ${st === 'rest' && S.speed > 1 ? `<button class="btn" data-act="skiprest">${t('s_skip')}</button>` : ''}
+    ${capWrap}</section>
+    <button class="btn block" data-act="abort">${t('e_abort')}</button>`;
+}
+function vTest() {
+  if (T.stage === 'idle') {
+    const p = pre();
+    return `<section class="card stack"><h2>${t('e_title')}</h2><p>${t('e_idle_d')}</p>
+      ${p.level === 'high' ? `<div class="warn">${t('e_high_warn')}</div>` : ''}${p.level === 'unk' ? `<div class="note">${t('e_unk_warn')}</div>` : ''}
+      ${S.noCuff ? `<div class="note">${t('c_nocuff')}</div>` : ''}
+      <button class="btn primary block" data-act="start">${t('e_start')}</button></section>`;
+  }
+  if (T.stage === 'gate') {
+    const g = T.gate, all = g.safe && g.support && g.nosym, p = pre();
+    const c = k => `<button class="check" role="checkbox" aria-checked="${g[k]}" data-act="gate" data-k="${k}"><span class="box">${g[k] ? '✓' : ''}</span><b>${t('g_' + k)}</b></button>`;
+    return `<section class="card stack"><h2>${t('g_title')}</h2>${p.level === 'high' ? `<div class="warn">${t('e_high_warn')}</div>` : ''}
+      ${c('safe')}${c('support')}${c('nosym')}${all ? '' : `<p class="muted small">${t('g_need')}</p>`}
+      <button class="btn primary block" data-act="gate-go" ${all ? '' : 'disabled'}>${t('g_continue')}</button></section>
+      <button class="btn block" data-act="abort">${t('e_abort')}</button>`;
+  }
+  return vStage();
+}
+
+/* ----- Decisión ----- */
+function vDecision() {
+  if (!S.last) {
+    return `<section class="card stack"><h2>${t('d_empty_t')}</h2><p class="muted">${t('d_empty_d')}</p>
+      <button class="btn primary block" data-act="tab" data-tab="test">${t('cta_test')}</button>
+      <button class="btn block" data-act="report-open">${t('d_report')}</button></section>`;
+  }
+  const L = S.last, d = L.dec, rem = remaining(L), expired = rem != null && rem <= 0, m = d.metrics, th = S.rules.th;
+  const goExpired = expired && d.level === 'go';
+  const word = goExpired ? t('d_expired_w') : t('dw_' + d.level), lvAttr = goExpired ? 'unk' : d.level;
+  const fm = v => v == null ? t('m_na') : v;
+  const met = m && (m.bpOk || m.hrOk) ? `<div class="stack"><h3>${t('d_metrics')}</h3><div class="grid3">
+    <div class="mt"><b>${m.dSbp == null ? '—' : '−' + m.dSbp}</b><span>${t('m_sbp')} (≥${th.sbp_drop_ho})</span></div>
+    <div class="mt"><b>${m.dDbp == null ? '—' : '−' + m.dDbp}</b><span>${t('m_dbp')} (≥${th.dbp_drop_ho})</span></div>
+    <div class="mt"><b>${m.dHr == null ? '—' : '+' + m.dHr}</b><span>${t('m_hr')} (≥${th.hr_rise_marg})</span></div></div></div>` : '';
+  const clock = rem != null ? `<div class="split"><span class="muted">${expired ? '' : (d.level === 'go' ? t('d_valid') : t('d_repeat'))}</span>
+    <span class="cd" id="cd">${expired ? '00:00' : mmss(rem)}</span></div>${S.speed > 1 && L.speed > 1 ? `<p class="muted small">${t('d_demo', { x: L.speed })}</p>` : ''}` : '';
+  return `<section class="dcard ${expired ? 'expired' : ''}" data-lv="${lvAttr}">
+    <div class="split"><span class="chip lv">${t('d_head')}</span><span class="muted small">${t('d_when', { time: fmtTime(L.ts) })}</span></div>
+    <div class="word">${word}</div>
+    ${expired ? `<div class="warn">${t('d_expired')}</div>` : ''}
+    <ul class="reasons">${d.reasons.map(r => `<li>${esc(reasonText(r))}</li>`).join('')}</ul>
+    <div class="next"><span class="muted small">${t('d_next')}</span><br>${t('nx_' + d.next)}</div>
+    ${clock}${met}
+    <div class="split"><span class="muted small">${t('d_pre')}</span><span class="chip">${t('lv_' + L.pre.level)} · ${t('conf')} ${t('conf_' + L.pre.conf)}</span></div>
+    <p class="muted small">${t('d_earth')}</p>
+    <p class="muted small">${t('d_saved')}</p>
+    <div class="grid2"><button class="btn primary" data-act="again">${t('d_repeat_btn')}</button><button class="btn danger" data-act="report-open">${t('d_report')}</button></div>
+    <p class="muted small">${t('d_disc', { v: S.rules.version })}</p></section>`;
+}
+
+/* ----- Registro ----- */
+function vLog() {
+  const pend = S.log.filter(e => e.sync === 'pending').length;
+  const items = S.log.map(e => {
+    const tr = e.trace ? `<details><summary>${t('l_trace')}</summary><pre>${esc(JSON.stringify(e.trace, null, 1))}</pre></details>` : '';
+    const rs = e.reasons && e.reasons.length ? `<ul class="reasons small">${e.reasons.map(r => `<li>${esc(reasonText(r))}</li>`).join('')}</ul>` : '';
+    return `<li ${e.lv ? `data-lv="${e.lv}"` : ''}><div class="split"><b>${t('lk_' + e.kind)}: ${esc(entryText(e))}</b><span class="muted small">${fmtTime(e.ts)}</span></div>${rs}
+      <span class="tag ${e.sync === 'sent' ? 'ok' : 'up'}" style="justify-self:start">${t(e.sync === 'sent' ? 'l_sent' : 'l_pending')}</span>${tr}</li>`;
+  }).join('');
+  return `<section class="card stack"><h2>${t('l_title')}</h2>
+    ${S.log.length ? `<p class="muted small">${t('l_n_pending', { n: pend })}</p>` : ''}
+    <button class="btn primary block" data-act="log-send" ${pend ? '' : 'disabled'}>${t('l_send')}</button><p class="muted small">${t('l_send_d')}</p>
+    <div class="grid2"><button class="btn" data-act="log-copy" ${S.log.length ? '' : 'disabled'}>${t('l_copy')}</button>
+    <button class="btn danger" data-act="log-clear" ${S.log.length ? '' : 'disabled'}>${CONFIRM === 'log' ? t('l_clear_c') : t('l_clear')}</button></div>
+    ${JSONTXT ? `<textarea class="jsonout" id="jsonout" rows="8" readonly>${esc(JSONTXT)}</textarea>` : ''}</section>
+    ${S.log.length ? `<ul class="log">${items}</ul>` : `<div class="card"><p class="muted">${t('l_empty')}</p></div>`}`;
+}
+
+/* ----- Datos y ajustes ----- */
+function numIn(path, label, extra) {
+  const v = path.split('.').reduce((o, k) => (o == null ? o : o[k]), S);
+  return `<div class="field"><label for="b-${path}">${label}</label><input class="in" id="b-${path}" type="number" inputmode="decimal" data-bind="${path}" value="${v == null ? '' : v}" ${extra || ''}></div>`;
+}
+function selIn(path, label, opts) {
+  const v = path.split('.').reduce((o, k) => o[k], S);
+  return `<div class="field"><label for="b-${path}">${label}</label><select class="in" id="b-${path}" data-bind="${path}" data-type="str">${opts.map(o => `<option value="${o[0]}" ${o[0] === v ? 'selected' : ''}>${o[1]}</option>`).join('')}</select></div>`;
+}
+const tog = (k, label) => `<button class="check" role="checkbox" aria-checked="${!!S[k]}" data-act="toggle" data-k="${k}"><span class="box">${S[k] ? '✓' : ''}</span><b>${label}</b></button>`;
+const segBtn = (act, v, cur, label, extra) => `<button data-act="${act}" data-v="${v}" aria-pressed="${String(v) === String(cur)}" ${extra || ''}>${label}</button>`;
+function vData() {
+  const R = S.rules, th = R.th;
+  const bleTxt = LIVE.status === 'ok' ? t('b_ok', { hr: LIVE.hr == null ? '—' : LIVE.hr }) : LIVE.status === 'wait' ? t('b_wait') : LIVE.status === 'err' ? t('b_fail', { e: esc(LIVE.err) }) : t('b_idle');
+  const profs = ['A', 'B', 'C'].map(k => `<button class="check" role="radio" aria-checked="${S.profile === k}" data-act="profile" data-v="${k}"><span class="box">${S.profile === k ? '●' : ''}</span><span><b>${t('pf_' + k)}</b><span class="muted small">${t('pf_' + k + '_d')}</span></span></button>`).join('');
+  const rules = Object.keys(DEFAULT_RULES.th).map(k => {
+    const og = DEFAULT_RULES.origin[k] || 'prov';
+    return `<div class="rule"><label for="b-rules.th.${k}">${t('th_' + k)}</label>${numIn('rules.th.' + k, '').replace('<label for="b-rules.th.' + k + '"></label>', '')}<span class="tag ${og === 'prov' ? 'missing' : 'ok'} og">${t('or_' + og)}</span></div>`;
+  }).join('') + Object.keys(DEFAULT_RULES.durations).map(k => {
+    const og = DEFAULT_RULES.origin['du_' + k] || 'prov';
+    return `<div class="rule"><label for="b-rules.durations.${k}">${t('du_' + k)}</label>${numIn('rules.durations.' + k, '').replace('<label for="b-rules.durations.' + k + '"></label>', '')}<span class="tag ${og === 'prov' ? 'missing' : 'ok'} og">${t('or_' + og)}</span></div>`;
+  }).join('');
+  return `<section class="card stack"><h2>${t('s_source')}</h2>
+    <div class="seg" role="group">${['sim', 'manual', 'ble'].map(k => segBtn('src', k, S.src, t('src_' + k))).join('')}</div>
+    <p class="muted small">${t('src_' + S.src + '_d')}</p>
+    ${S.src === 'ble' ? `<div class="stack"><h3>${t('b_title')}</h3><p class="muted small">${t('b_d')}</p><button class="btn" data-act="ble">${t('b_connect')}</button><p class="small" id="blestat" role="status">${bleTxt}</p></div>` : ''}</section>
+  <section class="card stack" role="radiogroup"><h2>${t('s_profile')}</h2>${profs}<p class="muted small">${t('pf_fict')}</p></section>
+  <section class="card stack"><h2>${t('i_title')}</h2><p class="muted small">${t('i_note')}</p>
+    <div class="grid2">${selIn('inputs.sex', t('i_sex'), [['M', t('i_M')], ['F', t('i_F')]])}${selIn('inputs.dest', t('i_dest'), [['moon', t('i_moon')], ['mars', t('i_mars')]])}</div>
+    <div class="grid2">${numIn('inputs.days', t('i_days'))}${numIn('inputs.baseHr', t('i_basehr'))}</div>
+    <div class="grid2">${numIn('inputs.hr.value', t('i_hr'))}${numIn('inputs.hr.ageMin', t('i_age'))}</div>
+    <div class="grid3">${numIn('inputs.bp.sbp', t('i_sbp'))}${numIn('inputs.bp.dbp', t('i_dbp'))}${numIn('inputs.bp.ageMin', t('i_age'))}</div>
+    <div class="grid2">${numIn('inputs.fluid.ml', t('i_fluid'))}${numIn('inputs.fluid.ageMin', t('i_age'))}</div>
+    ${numIn('inputs.compliance', t('i_comp'))}</section>
+  <section class="card stack"><h2>${t('o_title')}</h2>${tog('noCuff', t('o_nocuff'))}${tog('voice', t('o_voice'))}${tog('big', t('o_big'))}
+    <div class="field"><label>${t('o_speed')}</label><div class="seg">${[1, 10, 30].map(v => segBtn('speed', v, S.speed, '×' + v)).join('')}</div></div>
+    <div class="field"><label>${t('o_lang')}</label><div class="seg">${segBtn('setlang', 'es', S.lang, 'Español')}${segBtn('setlang', 'en', S.lang, 'English')}</div></div>
+    <div class="field"><label>${t('o_theme')}</label><div class="seg">${['auto', 'dark', 'light'].map(v => segBtn('settheme', v, S.theme, t('th_' + v))).join('')}</div></div></section>
+  <section class="card"><details><summary>${t('ru_title')}</summary><div class="rules" style="margin-top:10px"><p class="muted small">${t('ru_note')}</p>${rules}
+    <button class="btn" data-act="rules-reset">${t('ru_reset')}</button></div></details></section>
+  <section class="card"><details><summary>${t('lim_title')}</summary><ul class="refs" style="margin-top:10px">${[1, 2, 3, 4, 5, 6, 7].map(i => `<li>${t('lim_' + i)}</li>`).join('')}</ul></details></section>
+  <section class="card"><details><summary>${t('src_title')}</summary><ul class="refs" style="margin-top:10px">${[1, 2, 3, 4].map(i => `<li>${t('ref_' + i)}</li>`).join('')}</ul></details></section>
+  <button class="btn danger block" data-act="reset-all">${CONFIRM === 'all' ? t('l_clear_c') : t('reset_all')}</button>`;
+}
+const VIEWS = { home: vHome, prep: vPrep, test: vTest, decision: vDecision, log: vLog, data: vData };
+
+/* ---------- render ---------- */
+function applyTheme() { if (S.theme === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', S.theme); }
+function render() {
+  document.documentElement.lang = S.lang;
+  document.documentElement.classList.toggle('big', !!S.big);
+  applyTheme();
+  $('#tag').textContent = t('app_tag');
+  $('#btn-lang').textContent = S.lang === 'es' ? 'EN' : 'ES';
+  $('#btn-lang').setAttribute('aria-label', t('lang_toggle')); $('#btn-theme').setAttribute('aria-label', t('theme_toggle'));
+  const chip = S.src === 'sim' ? ['sim', 'chip_sim'] : S.src === 'manual' ? ['', 'chip_manual'] : ['', 'chip_ble'];
+  $('#chips').innerHTML = `<span class="chip ${chip[0]}">${t(chip[1])}</span><span class="chip">${t('notmed')}</span>`;
+  $('#nav').innerHTML = TABS.map(k => `<button data-act="tab" data-tab="${k}" ${S.tab === k ? 'aria-current="page"' : ''}><svg viewBox="0 0 24 24" aria-hidden="true">${ICONS[k]}</svg>${t('tab_' + (k === 'decision' ? 'dec' : k))}</button>`).join('');
+  $('#view').innerHTML = VIEWS[S.tab]();
+  tick();
+}
+function go(tab) {
+  S.tab = tab; CONFIRM = null; JSONTXT = null; save(); render(); window.scrollTo(0, 0);
+  try { if (location.hash !== '#' + tab) location.hash = tab; } catch (e) { }
+}
+
+/* ---------- flujo de la prueba ---------- */
+function startTest() { T = newTest(); T.stage = 'gate'; render(); speak(t('say_gate')); }
+function beginStage(name) { T.stage = name; T.start = Date.now(); T.await = false; T.series = []; T.s1open = false; render(); speak(t('say_' + name)); }
+function prefill(key) {
+  if (T.rd[key] && Object.keys(T.rd[key]).length) return;
+  let v = null;
+  if (S.src === 'sim') v = simRead(PROF[S.profile], key);
+  else if (S.src === 'ble' && LIVE.hr != null && Date.now() - LIVE.ts < 15000) v = { hr: LIVE.hr };
+  if (v) T.rd[key] = v;
+}
+function enterAwait() {
+  const st = T.stage;
+  if (st === 'rest') { beginStage('lying'); return; }
+  T.await = true;
+  prefill(st === 'lying' ? 'lying' : st === 'sit' ? 'sit' : 'stand3');
+  if (st === 'stand') prefill('stand1');
+  render(); speak(t('say_capture'));
+}
+function liveHr(stage, e) {
+  if (S.src === 'sim') return simHr(PROF[S.profile], stage === 'rest' ? 'lying' : stage, e);
+  if (S.src === 'ble' && LIVE.hr != null && Date.now() - LIVE.ts < 15000) return LIVE.hr;
+  return null;
+}
+function tick() {
+  if (S.tab === 'decision' && S.last) {
+    const rem = remaining(S.last), cd = $('#cd');
+    if (rem != null && cd) {
+      cd.textContent = mmss(rem);
+      if (rem <= 0 && !S.last.expShown) { S.last.expShown = true; save(); render(); }
+    }
+  }
+  if (!TIMED.includes(T.stage) || S.tab !== 'test') return;
+  const dur = S.rules.durations[T.stage];
+  let e = T.await ? dur : (Date.now() - T.start) / 1000 * S.speed;
+  if (!T.await && e >= dur) { enterAwait(); return; }
+  const hr = liveHr(T.stage, e);
+  if (hr != null && !T.await) T.series.push(hr);
+  if (T.series.length > 240) T.series.shift();
+  const tm = $('#tm'); if (!tm) return;
+  tm.textContent = mmss(dur - e);
+  $('#bar').style.width = Math.min(100, e / dur * 100) + '%';
+  $('#hrnow').textContent = hr == null ? '—' : Math.round(hr);
+  const sp = $('#spk'); if (sp) sp.setAttribute('points', sparkPts());
+  if (T.stage === 'stand' && !T.await) {
+    if (!T.s1open && e >= 60) { T.s1open = true; prefill('stand1'); render(); return; }
+    const P = PROF[S.profile];
+    if (S.src === 'sim' && P.resp.stopAt != null && e >= P.resp.stopAt) {
+      toast(t('sy_sim', { list: P.resp.stopSym.map(s => t('sym_' + s)).join(', ') }));
+      T.sym = P.resp.stopSym.slice(); finishTest(true);
+    }
+  }
+}
+function finishTest(stopped) {
+  const rd = clone(T.rd);
+  if (S.noCuff) Object.keys(rd).forEach(k => { delete rd[k].sbp; delete rd[k].dbp; });
+  const p = pre(), dec = decide(rd, T.sym, stopped, p, S.rules);
+  S.last = { ts: Date.now(), speed: S.speed, dec, pre: { level: p.level, conf: p.conf }, rd };
+  const L = rd.lying;
+  if (L && rangeOk(L.hr, S.rules.ranges.hr)) S.inputs.hr = { value: L.hr, ageMin: 0 };
+  if (L && rangeOk(L.sbp, S.rules.ranges.sbp) && rangeOk(L.dbp, S.rules.ranges.dbp)) S.inputs.bp = { sbp: L.sbp, dbp: L.dbp, ageMin: 0 };
+  addLog('eval', dec.level, 'dw_' + dec.level, {}, dec.reasons, {
+    rules: S.rules.version, source: S.src, profile: S.src === 'sim' ? S.profile : null,
+    pre: { level: p.level, confidence: p.conf, factors: p.factors.map(f => ({ id: f.id, status: f.st })) },
+    readings: rd, symptoms: T.sym, metrics: dec.metrics, thresholds: S.rules.th
+  });
+  T = newTest(); S.tab = 'decision'; save(); render(); window.scrollTo(0, 0);
+  try { location.hash = 'decision'; } catch (e) { }
+  speak(t('dw_' + dec.level) + '. ' + t('nx_' + dec.next));
+}
+function reportSymptoms(list) {
+  if (!list.length) return;
+  const p = pre(), dec = decide({}, list, true, p, S.rules); dec.reasons.unshift({ c: 'new_sym' });
+  S.last = { ts: Date.now(), speed: S.speed, dec, pre: { level: p.level, conf: p.conf }, rd: {} };
+  addLog('symptom', dec.level, 'dw_' + dec.level, {}, dec.reasons, { rules: S.rules.version, symptoms: list });
+  T = newTest(); S.tab = 'decision'; save(); render(); window.scrollTo(0, 0);
+  speak(t('dw_' + dec.level) + '. ' + t('nx_' + dec.next));
+}
+
+/* ---------- hoja de síntomas ---------- */
+let sheetMode = null, lastFocus = null;
+function openSheet(mode) {
+  sheetMode = mode; lastFocus = document.activeElement;
+  $('#sheet').innerHTML = `<div class="panel"><h2 style="font:700 26px var(--f-display)">${t('sy_title')}</h2>
+    ${SYMS.map(s => `<label class="opt"><input type="checkbox" value="${s}"><span>${t('sym_' + s)}</span></label>`).join('')}
+    <button class="btn danger block" data-act="sym-ok">${t('sy_confirm')}</button><button class="btn block" data-act="sym-cancel">${t('sy_cancel')}</button></div>`;
+  $('#sheet').hidden = false; const f = $('#sheet input'); if (f) f.focus();
+}
+function closeSheet() { $('#sheet').hidden = true; sheetMode = null; if (lastFocus && lastFocus.focus) lastFocus.focus(); }
+
+/* ---------- Bluetooth (opcional) ---------- */
+async function connectBLE() {
+  const upd = () => { const el = $('#blestat'); if (el) el.textContent = LIVE.status === 'ok' ? t('b_ok', { hr: LIVE.hr == null ? '—' : LIVE.hr }) : LIVE.status === 'wait' ? t('b_wait') : LIVE.status === 'err' ? t('b_fail', { e: LIVE.err }) : t('b_idle'); };
+  if (!navigator.bluetooth) { LIVE.status = 'err'; LIVE.err = t('b_unsupported'); upd(); return; }
+  try {
+    LIVE.status = 'wait'; upd();
+    const dev = await navigator.bluetooth.requestDevice({ filters: [{ services: ['heart_rate'] }] });
+    const srv = await dev.gatt.connect(), svc = await srv.getPrimaryService('heart_rate');
+    const ch = await svc.getCharacteristic('heart_rate_measurement');
+    await ch.startNotifications();
+    ch.addEventListener('characteristicvaluechanged', ev => {
+      const v = ev.target.value, f = v.getUint8(0);
+      LIVE.hr = (f & 1) ? v.getUint16(1, true) : v.getUint8(1); LIVE.ts = Date.now(); LIVE.status = 'ok'; upd();
+    });
+    LIVE.status = 'ok'; upd();
+  } catch (e) { LIVE.status = 'err'; LIVE.err = (e && e.message) || String(e); upd(); }
+}
+
+/* ---------- acciones ---------- */
+function applyProfile(k) { S.profile = k; S.inputs = clone(PROF[k].inp); S.prep = clone(PROF[k].prep); S.prepTs = {}; S.last = null; T = newTest(); }
+const ACT = {
+  tab: d => go(d.tab),
+  lang: () => { S.lang = S.lang === 'es' ? 'en' : 'es'; save(); render(); },
+  setlang: d => { S.lang = d.v; save(); render(); },
+  theme: () => { S.theme = S.theme === 'auto' ? 'dark' : S.theme === 'dark' ? 'light' : 'auto'; save(); render(); },
+  settheme: d => { S.theme = d.v; save(); render(); },
+  src: d => { S.src = d.v; save(); render(); },
+  speed: d => { S.speed = Number(d.v); save(); render(); },
+  toggle: d => { S[d.k] = !S[d.k]; save(); render(); },
+  profile: d => { applyProfile(d.v); save(); render(); toast(t('pf_' + d.v)); },
+  prep: d => {
+    const id = d.id, on = !S.prep[id]; S.prep[id] = on; if (on) S.prepTs[id] = Date.now(); else delete S.prepTs[id];
+    addLog('prep', null, on ? 'l_prep_item' : 'l_prep_undo', { item: 'pi_' + id }); save(); render();
+  },
+  'fluid-add': () => { const f = S.inputs.fluid; f.ml = (f.ml || 0) + 250; f.ageMin = 0; addLog('prep', null, 'l_fluid', { ml: 250 }); save(); render(); },
+  'fluid-reset': () => { S.inputs.fluid = { ml: null, ageMin: null }; save(); render(); },
+  start: () => startTest(),
+  gate: d => { T.gate[d.k] = !T.gate[d.k]; render(); },
+  'gate-go': () => beginStage('rest'),
+  skiprest: () => beginStage('lying'),
+  proceed: () => { const st = T.stage; if (st === 'lying') beginStage('sit'); else if (st === 'sit') beginStage('stand'); else finishTest(false); },
+  abort: () => { T = newTest(); render(); },
+  again: () => { T = newTest(); go('test'); },
+  'sym-open': () => openSheet('test'),
+  'report-open': () => openSheet('report'),
+  'sym-cancel': () => closeSheet(),
+  'sym-ok': () => {
+    const list = [...document.querySelectorAll('#sheet input:checked')].map(i => i.value), mode = sheetMode; closeSheet();
+    if (mode === 'test') { T.sym = list; finishTest(true); } else reportSymptoms(list);
+  },
+  'log-send': () => { S.log.forEach(e => { e.sync = 'sent'; }); save(); render(); toast(t('l_sent')); },
+  'log-copy': () => {
+    const txt = JSON.stringify({ app: 'MerluHealth', rules: S.rules.version, log: S.log }, null, 2);
+    const fb = () => { JSONTXT = txt; render(); const ta = $('#jsonout'); if (ta) { ta.focus(); ta.select(); } toast(t('l_copy_fail')); };
+    try { navigator.clipboard.writeText(txt).then(() => toast(t('l_copied')), fb); } catch (e) { fb(); }
+  },
+  'log-clear': () => { if (CONFIRM === 'log') { S.log = []; CONFIRM = null; save(); } else CONFIRM = 'log'; render(); },
+  'rules-reset': () => { S.rules = clone(DEFAULT_RULES); save(); render(); },
+  'reset-all': () => { if (CONFIRM === 'all') { try { localStorage.removeItem(KEY); } catch (e) { } S = defaults(); T = newTest(); CONFIRM = null; render(); } else { CONFIRM = 'all'; render(); } },
+  ble: () => connectBLE()
+};
+document.addEventListener('click', e => { const el = e.target.closest('[data-act]'); if (!el || el.disabled) return; const f = ACT[el.dataset.act]; if (f) f(el.dataset, el); });
+document.addEventListener('change', e => {
+  const el = e.target; if (!el.dataset || !el.dataset.bind) return;
+  const path = el.dataset.bind.split('.'), last = path.pop(); let o = S;
+  for (const k of path) { if (o[k] == null) o[k] = {}; o = o[k]; }
+  o[last] = el.dataset.type === 'str' ? el.value : (el.value === '' ? null : Number(el.value));
+  save();
+});
+document.addEventListener('input', e => {
+  const el = e.target; if (!el.dataset || !el.dataset.rd) return;
+  const [key, f] = el.dataset.rd.split('.'); T.rd[key] = T.rd[key] || {};
+  if (el.value === '') delete T.rd[key][f]; else T.rd[key][f] = Number(el.value);
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#sheet').hidden) closeSheet(); });
+window.addEventListener('hashchange', () => { const h = location.hash.slice(1); if (TABS.includes(h) && h !== S.tab) { S.tab = h; render(); } });
+(function init() {
+  const h = (location.hash || '').slice(1); if (TABS.includes(h)) S.tab = h;
+  render(); setInterval(tick, 250);
+})();
+</script>
